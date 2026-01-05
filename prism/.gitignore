@@ -1,0 +1,14 @@
+.*
+
+!.gitignore
+!.gitmodules
+!.luarc.json
+
+!.github/
+
+!.styluaignore
+
+definitions/
+build/
+venv/
+__pycache__
