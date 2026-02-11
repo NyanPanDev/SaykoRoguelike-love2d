@@ -26,7 +26,7 @@ function GameLevelState:__new(display)
    builder:addActor(prism.actors.Player(), 12, 12)
 
    -- Add systems
-   builder:addSystems(prism.systems.SensesSystem(), prism.systems.SightSystem())
+   builder:addSystems(prism.systems.SensesSystem(), prism.systems.SightSystem(), prism.systems.FallSystem())
 
    -- Initialize with the created level and display, the heavy lifting is done by
    -- the parent class.
@@ -54,6 +54,13 @@ function GameLevelState:updateDecision(dt, owner, decision)
       local destination = owner:getPosition() + controls.move.vector
       local move = prism.actions.Move(owner, destination)
       if self:setAction(move) then return end
+
+      local target = self.level:query() -- grab a query object
+            :at(destination:decompose()) -- restrict the query to the destination
+            :first() -- grab one of the kickable things, or nil
+
+      local kick = prism.actions.Kick(owner, target)
+      self:setAction(kick)
    end
 
    if controls.wait.pressed then self:setAction(prism.actions.Wait(owner)) end

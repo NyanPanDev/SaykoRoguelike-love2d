@@ -5,5 +5,7 @@
 !.luarc.json
 !.vscode
 
+.vscode/
+
 build/
 makelove-build/
