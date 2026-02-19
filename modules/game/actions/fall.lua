@@ -21,7 +21,7 @@ function Fall:canPerform(level)
 end
 
 function Fall:perform(level)
-   level:removeActor(self.owner)
+   level:perform(prism.actions.Die(self.owner))
 end
 
 return Fall

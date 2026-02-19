@@ -8,5 +8,6 @@ prism.registerActor("Kobold", function()
       prism.components.KoboldController(),
       prism.components.Drawable{ index = "k", color = prism.Color4.RED },
       prism.components.Health(3),
+      prism.components.Attacker(1),
    }
 end)

@@ -11,6 +11,11 @@ function KoboldController:act(level, actor)
    local mover = actor:get(prism.components.Mover)
    if not mover then return prism.actions.Wait(actor) end -- we can't move!
 
+   local attack = prism.actions.Attack(actor, player)
+   if level:canPerform(attack) then
+      level:perform(attack)
+   end
+
    local path = level:findPath(actor:getPosition(), player:getPosition(), actor, mover.mask, 1)
    if path then
       local move = prism.actions.Move(actor, path:pop())

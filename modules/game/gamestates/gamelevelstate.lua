@@ -34,14 +34,18 @@ function GameLevelState:__new(display)
 end
 
 function GameLevelState:handleMessage(message)
-   self.super.handleMessage(self, message)
-
    -- Handle any messages sent to the level state from the level. LevelState
    -- handles a few built-in messages for you, like the decision you fill out
    -- here.
 
    -- This is where you'd process custom messages like advancing to the next
    -- level or triggering a game over.
+   spectrum.gamestates.LevelState.handleMessage(self, message)
+
+   if prism.messages.LoseMessage:is(message) then
+      self.manager:pop()
+      love.event.quit()
+   end
 end
 
 -- updateDecision is called whenever there's an ActionDecision to handle.
@@ -71,6 +75,15 @@ function GameLevelState:draw()
 
    local player = self.level:query(prism.components.PlayerController):first()
 
+   local log = player:get(prism.components.Log)
+   if log then
+      local offset = 0
+      for line in log:iterLast(5) do
+         self.display:print(1, self.display.height - offset, line)
+         offset = offset + 1
+      end
+   end
+
    if not player then
       -- You would normally transition to a game over state
       self.display:putLevel(self.level)
@@ -90,7 +103,10 @@ function GameLevelState:draw()
    -- custom terminal drawing goes here!
 
    -- Say hello!
-   self.display:print(1, 1, "Hello prism!")
+   local health = player:get(prism.components.Health)
+   if health then
+      self.display:print(1, 1, "HP:" .. health.hp .. "/" .. health.maxHP)
+   end
 
    -- Actually render the terminal out and present it to the screen.
    -- You could use love2d to translate and say center a smaller terminal or
