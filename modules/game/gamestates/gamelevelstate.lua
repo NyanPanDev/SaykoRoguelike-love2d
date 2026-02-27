@@ -43,8 +43,7 @@ function GameLevelState:handleMessage(message)
    spectrum.gamestates.LevelState.handleMessage(self, message)
 
    if prism.messages.LoseMessage:is(message) then
-      self.manager:pop()
-      love.event.quit()
+      self.manager:enter(spectrum.gamestates.GameOverState(self.display))
    end
 end
 
