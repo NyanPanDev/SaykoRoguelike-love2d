@@ -163,14 +163,10 @@ function Entity:addRelation(relation, target, final)
 
    -- Add symmetric inverse if applicable
    local symmetricRelation = relation:generateSymmetric()
-   if symmetricRelation and not final then
-      target:addRelation(symmetricRelation, self, true)
-   end
+   if symmetricRelation and not final then target:addRelation(symmetricRelation, self, true) end
 
    local inverseRelation = relation:generateInverse()
-   if inverseRelation and not final then
-      target:addRelation(inverseRelation, self, true)
-   end
+   if inverseRelation and not final then target:addRelation(inverseRelation, self, true) end
 
    return self
 end
@@ -220,8 +216,8 @@ end
 function Entity:hasRelation(relationType, target)
    self.relations = self.relations or {}
    if not self.relations[relationType] then return false end
-   return (target and self.relations[relationType][target] ~= nil)
-      or next(self.relations[relationType]) ~= nil
+   if target then return self.relations[relationType][target] ~= nil end
+   return next(self.relations[relationType]) ~= nil
 end
 
 --- Gets all relations of a given type.
@@ -243,7 +239,6 @@ function Entity:clone()
    local clone = getmetatable(self)()
 
    for _, comp in pairs(self.components) do
-      print(comp.className)
       --- @cast comp Component
       clone:give(comp:clone())
    end

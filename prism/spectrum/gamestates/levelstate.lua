@@ -19,7 +19,9 @@ function LevelState:__new(level, display)
    self.decision = nil
    self.message = nil
    self.display = display
-   if geometer then self.editor = spectrum.gamestates.EditorState(self.level, self.display) end
+   if geometer then
+      self.editor = spectrum.gamestates.EditorState(self.level, self:getGeometerDisplay())
+   end
    self.time = 0
 end
 
@@ -40,7 +42,6 @@ end
 --- @param dt number The time delta since the last update.
 function LevelState:update(dt)
    self.time = self.time + dt
-   self.display:update(self.level, dt)
 
    while self:shouldAdvance() do
       local message = prism.advanceCoroutine(self.updateCoroutine, self.level, self.decision)
@@ -49,6 +50,9 @@ function LevelState:update(dt)
    end
 
    if self.decision then self:updateDecision(dt, self.decision.actor, self.decision) end
+
+   local primary, secondary = self:getSenses()
+   self.display:update(self.level, dt, unpack(primary), unpack(secondary))
 
    if spectrum.Input.key["`"].pressed and self.editor then self.manager:push(self.editor) end
 end
@@ -154,6 +158,12 @@ end
 --- @return Actor?
 function LevelState:getCurrentActor()
    return self.decision and self.decision.actor or nil
+end
+
+--- Returns the display to use for Geometer. This should be a base :lua:class:`Display`.
+--- Override this if you have a custom Display and want to maintain compatibility with Geometer.
+function LevelState:getGeometerDisplay()
+   return self.display
 end
 
 return LevelState

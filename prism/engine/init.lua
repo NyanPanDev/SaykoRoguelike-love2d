@@ -40,13 +40,16 @@ prism.Vector2 = prism.require "math.vector"
 prism.Rectangle = prism.require "math.rectangle"
 
 --- @module "engine.math.bresenham"
-prism.Bresenham = prism.require "math.bresenham"
+prism.bresenham = prism.require "math.bresenham"
 
 --- @module "engine.algorithms.ellipse"
-prism.Ellipse = prism.require "algorithms.ellipse"
+prism.ellipse = prism.require "algorithms.ellipse"
 
 --- @module "engine.algorithms.bfs"
-prism.BreadthFirstSearch = prism.require "algorithms.bfs"
+prism.breadthFirstSearch = prism.require "algorithms.bfs"
+
+--- @module "engine.algorithms.dijkstra"
+prism.dijkstra = prism.require "algorithms.dijkstra"
 
 prism.neighborhood = prism.Vector2.neighborhood8
 
@@ -278,6 +281,7 @@ function prism.registerRegistry(name, type, factory, module)
 
    prism.writeDefinitions(
       "--- The " .. type.className .. " registry.",
+      "--- @class " .. type.className .. "Registry",
       module .. "." .. name .. " = {}"
    )
 end
@@ -327,7 +331,7 @@ function prism.register(object, skipDefinitions)
    if skipDefinitions then return end
 
    prism.writeDefinitions(
-      "--- @class " .. object.className,
+      "--- @class " .. object.className .. " : " .. getmetatable(object).className,
       "local " .. object.className .. " = nil",
       registry.module .. "." .. registry.name .. "." .. objectName .. " = " .. object.className
    )

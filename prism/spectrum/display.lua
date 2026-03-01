@@ -25,6 +25,8 @@
 --- @field pushed boolean Whether to draw with the camera offset applied or not.
 --- @field overridenActors table<Actor, boolean> A set of actors that are being manually drawn to the display.
 --- @field animations AnimationMessage[]
+--- @field fgCallback fun(fg, bg): fg, bg
+--- @field passes DisplayPass[]
 --- @overload fun(width: integer, heigh: integer, spriteAtlas: SpriteAtlas, cellSize: Vector2): Display
 local Display = prism.Object:extend("Display")
 
@@ -39,9 +41,11 @@ function Display:__new(width, height, spriteAtlas, cellSize)
    self.width = width
    self.height = height
    self.camera = prism.Vector2()
+   self.lighting = nil
    self.pushed = false
    self.overridenActors = {}
    self.animations = {}
+   self.passes = {}
 
    self.cells = { {} }
 
@@ -62,12 +66,26 @@ end
 --- Updates animations in the display.
 --- @param level Level
 --- @param dt number
-function Display:update(level, dt)
+--- @param ...? Senses
+function Display:update(level, dt, ...)
+   local senses = { ... }
+
    for i = #self.animations, 1, -1 do
       local animation = self.animations[i]
       animation.animation:update(dt)
 
-      if animation.animation.status == "paused" then self:removeAnimation(i) end
+      if animation.animation.status == "paused" then
+         self:removeAnimation(i)
+      elseif animation.actor then
+         for _, sense in ipairs(senses) do
+            if
+               self.animations[i]
+               and not sense.owner:hasRelation(prism.relations.SensesRelation, animation.actor)
+            then
+               self:removeAnimation(i)
+            end
+         end
+      end
    end
 
    for _, _, animation in
@@ -173,19 +191,24 @@ function Display:putAnimations(level, ...)
    end
 
    for i = #self.animations, 1, -1 do
-      local animation = self.animations[i]
-      if animation.animation:isCustom() then
-         animation.animation:draw(self)
-      else
-         local x, y = animation.x, animation.y
-         if animation.actor then
-            animation.actor:getPosition(reusedPosition)
-            x = x + (reusedPosition and reusedPosition.x or 0)
-            y = y + (reusedPosition and reusedPosition.y or 0)
-         end
+      self:putAnimation(self.animations[i])
+   end
+end
 
-         animation.animation:draw(self, x, y)
+--- Puts a single animation to the display. Handles senses.
+--- @param message AnimationMessage The animation to put.
+function Display:putAnimation(message)
+   if message.animation:isCustom() then
+      message.animation:draw(self)
+   else
+      local x, y = message.x, message.y
+      if message.actor then
+         message.actor:getPosition(reusedPosition)
+         x = x + (reusedPosition and reusedPosition.x or 0)
+         y = y + (reusedPosition and reusedPosition.y or 0)
       end
+
+      message.animation:draw(self, x, y)
    end
 end
 
@@ -222,6 +245,45 @@ end
 
 local tempColor = prism.Color4()
 
+local tmpFG = prism.Color4()
+local tmpBG = prism.Color4()
+local tmpDrawable
+
+local function copytemp(drawable)
+   if not tmpDrawable then tmpDrawable = prism.components.Drawable {} end
+
+   for k, v in pairs(tmpDrawable) do
+      tmpDrawable[k] = nil
+   end
+
+   for k, v in pairs(drawable) do
+      tmpDrawable[k] = v
+   end
+
+   tmpDrawable.color = drawable.color:copy(tmpFG)
+   tmpDrawable.background = drawable.background:copy(tmpBG)
+
+   return tmpDrawable
+end
+
+--- Applies stack of display passes on the given entity.
+--- @param entity Entity
+--- @param x integer
+--- @param y integer
+--- @param drawable Drawable
+--- @param alpha? number
+function Display:applyPasses(entity, x, y, drawable, alpha)
+   drawable = copytemp(drawable)
+
+   for _, pass in ipairs(self.passes) do
+      pass:run(entity, x, y, drawable)
+   end
+
+   tempColor = drawable.color:copy(tempColor)
+   tempColor.a = tempColor.a * (alpha or 0)
+   if self.fgCallback then self.fgCallback("cell", tempColor) end
+end
+
 --- Draws cells from a given cell map onto the display, handling depth and transparency.
 --- @private
 --- @param drawnCells SparseGrid A sparse grid to keep track of already drawn cells to prevent overdrawing.
@@ -234,8 +296,7 @@ function Display:_drawCells(drawnCells, cellMap, alpha)
          --- @cast cell Cell
 
          local drawable = cell:expect(prism.components.Drawable)
-         tempColor = drawable.color:copy(tempColor)
-         tempColor.a = tempColor.a * alpha
+         self:applyPasses(cell, cx, cy, drawable, alpha)
          self:putDrawable(cx, cy, drawable, tempColor)
       end
    end
@@ -254,14 +315,25 @@ function Display:_drawActors(drawnActors, senses, level, alpha)
       --- @cast drawable Drawable
       if not drawnActors[actor] and not self.overridenActors[actor] then
          drawnActors[actor] = true
-         tempColor = drawable.color:copy(tempColor)
-         tempColor.a = tempColor.a * alpha
 
          --- @cast position Position
          local ax, ay = position:getVector():decompose()
+         self:applyPasses(actor, ax, ay, drawable, alpha)
+
          self:putDrawable(ax, ay, drawable, tempColor)
       end
    end
+end
+
+--- Pushes a pass onto display pass stack.
+--- @param pass DisplayPass
+function Display:pushPass(pass)
+   table.insert(self.passes, pass)
+end
+
+--- Pops a display pass off of the stack.
+function Display:popPass()
+   table.remove(self.passes, #self.passes)
 end
 
 --- @param drawnActors table
@@ -341,13 +413,14 @@ function Display:putSprite(x, y, sprite, color, layer)
       for y = y, y + size - 1 do
          for x = x, x + size - 1 do
             local isSprite = type(sprite.indices[i]) == "table"
+            local indexed = sprite.indices[i]
             self:put(
                x,
                y,
-               isSprite and sprite.indices[i].index or sprite.indices[i],
-               color or (isSprite and sprite.indices[i].color or sprite.color),
-               isSprite and sprite.indices[i].background or sprite.background,
-               layer or (isSprite and sprite.indices[i].layer or sprite.layer)
+               isSprite and indexed.index or indexed,
+               color or (isSprite and indexed.color or sprite.color),
+               isSprite and indexed.background or sprite.background,
+               layer or (isSprite and indexed.layer or sprite.layer)
             )
             i = i + 1
          end
@@ -395,24 +468,20 @@ end
 --- This function respects drawing layers, so higher layer values will overwrite lower ones.
 --- @param x integer The X grid coordinate.
 --- @param y integer The Y grid coordinate.
---- @param char string|integer The character or index to draw.
+--- @param index? string|integer The character or index to draw.
 --- @param fg? Color4 The foreground color. Defaults to white.
 --- @param bg? Color4 The background color. Defaults to transparent.
---- @param layer number? The draw layer (higher numbers draw on top). Defaults to -math.huge.
-function Display:put(x, y, char, fg, bg, layer)
-   if self.pushed then
-      x = x + self.camera.x
-      y = y + self.camera.y
-   end
-   if x < 1 or x > self.width or y < 1 or y > self.height then return end
+--- @param layer? number The draw layer (higher numbers draw on top). Defaults to -math.huge.
+function Display:put(x, y, index, fg, bg, layer)
+   local cell = self:getCell(x, y)
+
+   if not cell then return end
 
    fg = fg or prism.Color4.WHITE
    bg = bg or prism.Color4.TRANSPARENT
 
-   local cell = self.cells[x][y]
-
    if not layer or layer >= cell.depth then
-      cell.char = char
+      cell.char = index
       fg:copy(cell.fg)
       bg:copy(cell.bg)
       cell.depth = layer or -math.huge
@@ -425,21 +494,35 @@ end
 --- @param bg Color4 The background color to set.
 --- @param layer number? The draw layer (optional, higher numbers draw on top). Defaults to -math.huge.
 function Display:putBG(x, y, bg, layer)
+   local cell = self:getCell(x, y)
+
+   if cell then self:put(x, y, cell.char, cell.fg, bg, layer) end
+end
+
+--- Sets only the foreground color of a cell at a specific grid position, with depth checking.
+--- @param x integer The X grid coordinate.
+--- @param y integer The Y grid coordinate.
+--- @param fg Color4 The foreground color to set.
+--- @param layer number? The draw layer (optional, higher numbers draw on top). Defaults to -math.huge.
+function Display:putFG(x, y, fg, layer)
+   local cell = self:getCell(x, y)
+   if cell then self:put(x, y, cell.char, fg, cell.bg, layer) end
+end
+
+---Returns the cell at this location, respecting camera and bounds.
+--- @private
+--- @param x integer The X grid coordinate.
+--- @param y integer The Y grid coordinate.
+--- @return DisplayCell?
+function Display:getCell(x, y)
    if self.pushed then
       x = x + self.camera.x
       y = y + self.camera.y
    end
 
-   if x < 1 or x > self.width or y < 1 or y > self.height then return end
+   if x < 1 or x > self.width or y < 1 or y > self.height then return nil end
 
-   bg = bg or prism.Color4.TRANSPARENT
-
-   local cell = self.cells[x][y]
-
-   if not layer or layer >= cell.depth then
-      bg:copy(cell.bg)
-      cell.depth = layer or -math.huge
-   end
+   return self.cells[x][y]
 end
 
 --- Draws a string of characters at a grid position, with optional alignment.
@@ -585,7 +668,7 @@ end
 --- @param bg Color4? The background color.
 --- @param layer number? The draw layer.
 function Display:rectangle(mode, x, y, w, h, char, fg, bg, layer)
-   if mode == "fill" then
+   if mode == "line" then
       for dx = 0, w - 1 do
          self:put(x + dx, y, char, fg, bg, layer)
          self:put(x + dx, y + h - 1, char, fg, bg, layer)
@@ -613,7 +696,7 @@ end
 --- @param bg Color4? The background color.
 --- @param layer number? The draw layer.
 function Display:line(x0, y0, x1, y1, char, fg, bg, layer)
-   local path = prism.Bresenham(x0, y0, x1, y1)
+   local path = prism.bresenham(x0, y0, x1, y1)
    for _, position in ipairs(path:getPath()) do
       self:put(position.x, position.y, char, fg, bg, layer)
    end
