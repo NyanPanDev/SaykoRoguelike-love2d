@@ -1,22 +1,20 @@
 local controls = require "controls"
-local levelgen = require "levelgen"
+local Game = require "game"
 
 --- @class GameLevelState : LevelState
 --- A custom game level state responsible for initializing the level map,
 --- handling input, and drawing the state to the screen.
 ---
---- @overload fun(display: Display): GameLevelState
+--- @overload fun(display: Display, builder: LevelBuilder, seed: string): GameLevelState
 local GameLevelState = spectrum.gamestates.LevelState:extend "GameLevelState"
 
 --- @param display Display
-function GameLevelState:__new(display)
+function GameLevelState:__new(display, builder, seed)
    -- Construct a simple test map using MapBuilder.
    -- In a complete game, you'd likely extract this logic to a separate module
    -- and pass in an existing player object between levels.
-   local seed = love.timer.getTime()
-   local builder = levelgen(prism.RNG(seed), prism.actors.Player(), 60, 30)
-
    -- Add systems
+   builder:addSeed(seed)
    builder:addSystems(prism.systems.SensesSystem(), prism.systems.SightSystem(), prism.systems.FallSystem())
 
    -- Initialize with the created level and display, the heavy lifting is done by
@@ -34,7 +32,8 @@ function GameLevelState:handleMessage(message)
    spectrum.gamestates.LevelState.handleMessage(self, message)
 
    if prism.messages.DescendMessage:is(message) then
-      self.manager:enter(spectrum.gamestates.GameLevelState(self.display))
+      --- @cast message DescendMessage
+      self.manager:enter(spectrum.gamestates.GameLevelState(self.display, Game:generateNextFloor(message.descender), Game:getLevelSeed()))
    end
 
    if prism.messages.LoseMessage:is(message) then
@@ -59,12 +58,43 @@ function GameLevelState:updateDecision(dt, owner, decision)
       local move = prism.actions.Move(owner, destination)
       if self:setAction(move) then return end
 
+      local openable = self.level
+         :query(prism.components.Container)
+         :at(destination:decompose())
+         :first()
+      local openContainer = prism.actions.OpenContainer(owner, openable)
+      if self:setAction(openContainer) then return end
+
       local target = self.level:query() -- grab a query object
             :at(destination:decompose()) -- restrict the query to the destination
             :first() -- grab one of the kickable things, or nil
 
       local kick = prism.actions.Kick(owner, target)
       self:setAction(kick)
+
+      
+   end
+
+   if controls.inventory.pressed then
+      local inventory = owner:get(prism.components.Inventory)
+      if inventory then
+         local inventoryState = spectrum.gamestates.InventoryState(
+            self.display,
+            decision,
+            self.level,
+            inventory
+         )
+         self.manager:push(inventoryState)
+      end
+   end
+
+   if controls.pickup.pressed then
+      local target = self.level:query(prism.components.Item)
+         :at(owner:getPosition():decompose())
+         :first()
+
+      local pickup = prism.actions.Pickup(owner, target)
+      if self:setAction(pickup) then return end
    end
 
    if controls.wait.pressed then self:setAction(prism.actions.Wait(owner)) end
@@ -107,6 +137,7 @@ function GameLevelState:draw()
    if health then
       self.display:print(1, 1, "HP:" .. health.hp .. "/" .. health.maxHP)
    end
+   self.display:print(1, 2, "Depth: " .. Game.depth)
 
    -- Actually render the terminal out and present it to the screen.
    -- You could use love2d to translate and say center a smaller terminal or

@@ -99,5 +99,11 @@ return function(rng, player, width, height)
 
    builder:addActor(prism.actors.Stairs(), randCorner.x, randCorner.y)
 
+   local chestRoom = availableRooms[rng:random(1, #availableRooms)]
+   local center = chestRoom:center():floor()
+   local drops = prism.components.DropTable(require "modules/game/loot/chest"):getDrops(rng)
+
+   builder:addActor(prism.actors.Chest(drops), center:decompose())
+
    return builder
 end

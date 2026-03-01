@@ -8,7 +8,7 @@ Descend.targets = { DescendTarget }
 
 function Descend:perform(level)
    level:removeActor(self.owner)
-   level:yield(prism.messages.DescendMessage())
+   level:yield(prism.messages.DescendMessage(self.owner))
 end
 
 return Descend
