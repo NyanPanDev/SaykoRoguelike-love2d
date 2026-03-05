@@ -49,19 +49,18 @@ end
 
 function InventoryState:update(dt)
    controls:update()
-
    for i, letter in ipairs(self.letters) do
       if spectrum.Input.key[letter].pressed then
-         local pressedItem = self.items[i]
-         local drop = prism.actions.Drop(self.decision.actor, pressedItem)
-         self.decision:setAction(drop, self.level)
-
-         self.manager:pop()
+         self.manager:push(spectrum.gamestates.InventoryActionState(self.display, self.decision, self.level, self.items[i]))
          return
       end
    end
 
-   if controls.inventory.pressed or controls.back.pressed then
+   if controls.inventory.pressed or controls.back.pressed then self.manager:pop() end
+end
+
+function InventoryState:resume()
+   if self.decision:validateResponse() then
       self.manager:pop()
    end
 end

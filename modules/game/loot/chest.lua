@@ -1,6 +1,6 @@
 --- @type DropTableOptions
 return {
    {
-      entry = "MeatBrick"
+      entry = "VitalityPotion"
    }
 }

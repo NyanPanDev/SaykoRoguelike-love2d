@@ -15,7 +15,12 @@ function GameLevelState:__new(display, builder, seed)
    -- and pass in an existing player object between levels.
    -- Add systems
    builder:addSeed(seed)
-   builder:addSystems(prism.systems.SensesSystem(), prism.systems.SightSystem(), prism.systems.FallSystem())
+   builder:addSystems(
+      prism.systems.SensesSystem(), 
+      prism.systems.SightSystem(), 
+      prism.systems.FallSystem(),
+      prism.systems.TickSystem()
+   )
 
    -- Initialize with the created level and display, the heavy lifting is done by
    -- the parent class.
@@ -135,9 +140,13 @@ function GameLevelState:draw()
    -- Say hello!
    local health = player:get(prism.components.Health)
    if health then
-      self.display:print(1, 1, "HP:" .. health.hp .. "/" .. health.maxHP)
+      self.display:print(1, 1, "HP:" .. health.hp .. "/" .. health:getMaxHP())
    end
-   self.display:print(1, 2, "Depth: " .. Game.depth)
+   local stamina = player:get(prism.components.Stamina)
+   if stamina then
+      self.display:print(1, 2, "Stamina:" .. stamina.stamina .. "/" .. stamina.maxStamina)
+   end
+   self.display:print(1, 3, "Depth: " .. Game.depth)
 
    -- Actually render the terminal out and present it to the screen.
    -- You could use love2d to translate and say center a smaller terminal or

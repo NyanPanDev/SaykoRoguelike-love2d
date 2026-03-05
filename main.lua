@@ -5,9 +5,10 @@ prism.loadModule("prism/spectrum")
 prism.loadModule("prism/geometer")
 prism.loadModule("prism/extra/sight")
 prism.loadModule("prism/extra/log")
-prism.loadModule("modules/game")
 prism.loadModule("prism/extra/inventory")
 prism.loadModule("prism/extra/droptable")
+prism.loadModule("prism/extra/condition")
+prism.loadModule("modules/game")
 
 local Game = require("game")
 
