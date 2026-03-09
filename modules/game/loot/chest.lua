@@ -1,6 +1,11 @@
 --- @type DropTableOptions
 return {
    {
-      entry = "VitalityPotion"
+      entry = "VitalityPotion",
+      weight = 100,
+   },
+   {
+      entry = "WandofHurt",
+      weight = 50,
    }
 }

@@ -7,5 +7,11 @@ prism.registerActor("Goblin", function()
       prism.components.Mover{ "walk" },
       prism.components.KoboldController(),
       prism.components.Drawable{ index = "g", color = prism.Color4.RED },
+      prism.components.Health(3),
+      prism.components.Attacker(1),
+      prism.components.DropTable {
+         chance = 0.3,
+         entry = "MeatBrick",
+      }
    }
 end)

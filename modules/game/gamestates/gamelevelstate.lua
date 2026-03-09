@@ -142,9 +142,9 @@ function GameLevelState:draw()
    if health then
       self.display:print(1, 1, "HP:" .. health.hp .. "/" .. health:getMaxHP())
    end
-   local stamina = player:get(prism.components.Stamina)
-   if stamina then
-      self.display:print(1, 2, "Stamina:" .. stamina.stamina .. "/" .. stamina.maxStamina)
+   local hunger = player:get(prism.components.Hunger)
+   if hunger then
+      self.display:print(1, 2, "Hunger:" .. hunger.hunger .. "/" .. hunger.maxHunger)
    end
    self.display:print(1, 3, "Depth: " .. Game.depth)
 
