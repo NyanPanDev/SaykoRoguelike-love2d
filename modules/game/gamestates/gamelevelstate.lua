@@ -1,30 +1,31 @@
 local controls = require "controls"
-local Game = require "game"
+require "game"
 
 --- @class GameLevelState : LevelState
 --- A custom game level state responsible for initializing the level map,
 --- handling input, and drawing the state to the screen.
 ---
---- @overload fun(display: Display, builder: LevelBuilder, seed: string): GameLevelState
+--- @overload fun(display: Display, level: Level|LevelBuilder, seed?: string): GameLevelState
 local GameLevelState = spectrum.gamestates.LevelState:extend "GameLevelState"
 
 --- @param display Display
-function GameLevelState:__new(display, builder, seed)
-   -- Construct a simple test map using MapBuilder.
-   -- In a complete game, you'd likely extract this logic to a separate module
-   -- and pass in an existing player object between levels.
-   -- Add systems
-   builder:addSeed(seed)
-   builder:addSystems(
-      prism.systems.SensesSystem(), 
-      prism.systems.SightSystem(), 
-      prism.systems.FallSystem(),
-      prism.systems.TickSystem()
-   )
+--- @param level Level|LevelBuilder
+--- @param seed string?
+function GameLevelState:__new(display, level, seed)
+   if prism.LevelBuilder:is(level) then
+      level:addSeed(seed)
+      level:addSystems(
+         prism.systems.SensesSystem(),
+         prism.systems.SightSystem(),
+         prism.systems.FallSystem()
+      )
 
-   -- Initialize with the created level and display, the heavy lifting is done by
-   -- the parent class.
-   self.super.__new(self, builder:build(prism.cells.Wall), display)
+      -- Initialize with the created level and display, the heavy lifting is done by
+      -- the parent class.
+      self.super.__new(self, level:build(prism.cells.Wall), display)
+   else
+      self.super.__new(self, level, display)
+   end
 end
 
 function GameLevelState:handleMessage(message)
@@ -48,6 +49,8 @@ end
 
 -- updateDecision is called whenever there's an ActionDecision to handle.
 function GameLevelState:updateDecision(dt, owner, decision)
+   -- expose the current level to the global Game object for saving/loading purposes
+   Game.level = self.level
    -- Controls need to be updated each frame.
    controls:update()
 
@@ -103,6 +106,15 @@ function GameLevelState:updateDecision(dt, owner, decision)
    end
 
    if controls.wait.pressed then self:setAction(prism.actions.Wait(owner)) end
+
+   if controls.equipment.pressed then
+   local equipper = owner:get(prism.components.Equipper)
+      if equipper then
+         local equipState =
+            spectrum.gamestates.EquipmentState(self.display, decision, self.level, equipper)
+         self.manager:push(equipState)
+      end
+   end
 end
 
 function GameLevelState:draw()

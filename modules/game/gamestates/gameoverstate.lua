@@ -28,6 +28,7 @@ function GameOverState:draw()
 end
 
 function GameOverState:update(dt)
+   Game.lost = true
    controls:update()
 
    if controls.quit.pressed then

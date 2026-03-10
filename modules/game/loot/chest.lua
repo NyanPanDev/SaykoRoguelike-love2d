@@ -7,5 +7,9 @@ return {
    {
       entry = "WandofHurt",
       weight = 50,
+   },
+   {
+      entry = "RingofVitality",
+      weight = 25,
    }
 }
