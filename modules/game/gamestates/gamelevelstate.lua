@@ -17,7 +17,8 @@ function GameLevelState:__new(display, level, seed)
       level:addSystems(
          prism.systems.SensesSystem(),
          prism.systems.SightSystem(),
-         prism.systems.FallSystem()
+         prism.systems.FallSystem(),
+         prism.systems.TickSystem()
       )
 
       -- Initialize with the created level and display, the heavy lifting is done by
