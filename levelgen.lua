@@ -7,12 +7,11 @@ local PARTITIONS = 3
 return function(rng, player, width, height)
    local builder = prism.LevelBuilder(prism.cells.Wall)
 
-   -- Fill the map with random noise of pits and walls.
    local nox, noy = rng:random(1, 10000), rng:random(1, 10000)
    for x = 1, width do
       for y = 1, height do
-         local noise = love.math.perlinNoise(x / 5 + nox, y / 5 + noy)
-         local cell = noise > 0.5 and prism.cells.Wall or prism.cells.Pit
+         ---- local noise = love.math.perlinNoise(x / 5 + nox, y / 5 + noy)
+         local cell = prism.cells.Wall
          builder:set(x, y, cell())
       end
    end
@@ -25,20 +24,24 @@ return function(rng, player, width, height)
    local pw, ph = math.floor(width / PARTITIONS), math.floor(height / PARTITIONS)
    local minrw, minrh = math.floor(pw / 3), math.floor(ph / 3)
    local maxrw, maxrh = pw - 2, ph - 2 -- Subtract 2 to ensure there's a margin.
-   for px = 0, PARTITIONS - 1 do
-      for py = 0, PARTITIONS - 1 do
-         if not missing:equals(px, py) then
-            local rw, rh = rng:random(minrw, maxrw), rng:random(minrh, maxrh)
-            local x = rng:random(px * pw + 1, (px + 1) * pw - rw - 1)
-            local y = rng:random(py * ph + 1, (py + 1) * ph - rh - 1)
+for px = 0, PARTITIONS - 1 do
+   for py = 0, PARTITIONS - 1 do
+      if not missing:equals(px, py) then
 
-            local roomRect = prism.Rectangle(x, y, rw, rh)
-            rooms[prism.Vector2._hash(px, py)] = roomRect
+         local rw = rng:random(minrw, maxrw)
+         local aspectVariation = rng:random(-2, 2)
+         local rh = math.min(maxrh, math.max(minrh, rw + aspectVariation))
 
-            builder:rectangle("fill", x, y, x + rw, y + rh, prism.cells.Floor)
-         end
+         local x = rng:random(px * pw + 1, (px + 1) * pw - rw - 1)
+         local y = rng:random(py * ph + 1, (py + 1) * ph - rh - 1)
+
+         local roomRect = prism.Rectangle(x, y, rw, rh)
+         rooms[prism.Vector2._hash(px, py)] = roomRect
+
+         builder:rectangle("fill", x, y, x + rw, y + rh, prism.cells.Floor)
       end
    end
+end
 
    -- Helper function to connect two points with an L-shaped hallway.
    --- @param a Rectangle
