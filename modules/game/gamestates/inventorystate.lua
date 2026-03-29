@@ -28,7 +28,7 @@ end
 function InventoryState:draw()
    self.previousState:draw()
    self.display:clear()
-   self.display:print(1, 1, "Inventory", nil, nil, 2, "right")
+   self.display:print(1, 1, "Inventory")
 
    for i, actor in ipairs(self.items) do
       local name = actor:getName()
@@ -41,7 +41,7 @@ function InventoryState:draw()
       end
 
       local itemstr = ("[%s] %s%s"):format(letter, countstr, name)
-      self.display:print(1, 1 + i, itemstr, nil, nil, 2, "right")
+      self.display:print(1, 1 + i, itemstr)
    end
 
    self.display:draw()

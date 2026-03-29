@@ -34,12 +34,12 @@ end
 function InventoryActionState:draw()
    self.previousState:draw()
    self.display:clear()
-   self.display:print(1, 1, Name.get(self.item), nil, nil, 2, "right")
+   self.display:print(1, 1, Name.get(self.item))
 
    for i, action in ipairs(self.actions) do
       local letter = string.char(96 + i)
       local name = string.gsub(action:getName(), "Action", "")
-      self.display:print(1, 1 + i, string.format("[%s] %s", letter, name), nil, nil, nil, "right")
+      self.display:print(1, 1 + i, string.format("[%s] %s", letter, name))
    end
 
    self.display:draw()

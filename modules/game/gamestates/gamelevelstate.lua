@@ -84,6 +84,12 @@ function GameLevelState:updateDecision(dt, owner, decision)
       
    end
 
+   if controls.stats.pressed then
+      local statsState =
+         spectrum.gamestates.PlayerStatsPageState(self.display, decision, self.level)
+      self.manager:push(statsState)
+   end
+
    if controls.inventory.pressed then
       local inventory = owner:get(prism.components.Inventory)
       if inventory then
@@ -127,7 +133,7 @@ function GameLevelState:draw()
    if log then
       local offset = 0
       for line in log:iterLast(5) do
-         self.display:print(1, self.display.height - offset, line)
+         self.display:print(1, self.display.height - offset, line, nil, nil, 2, "right")
          offset = offset + 1
       end
    end
@@ -151,15 +157,19 @@ function GameLevelState:draw()
    -- custom terminal drawing goes here!
 
    -- Say hello!
+
+   local zoom = 2.0 
+   local visibleRows = (love.graphics.getHeight() / zoom) / 16
    local health = player:get(prism.components.Health)
+   local bottomAnchor = math.floor(visibleRows) - 2
    if health then
-      self.display:print(1, 1, "HP:" .. health.hp .. "/" .. health:getMaxHP())
+      self.display:print(1, bottomAnchor - 3, "HP:" .. health.hp .. "/" .. health:getMaxHP())
    end
    local hunger = player:get(prism.components.Hunger)
    if hunger then
-      self.display:print(1, 2, "Hunger:" .. hunger.hunger .. "/" .. hunger.maxHunger)
+      self.display:print(1, bottomAnchor - 2, "Hunger:" .. hunger.hunger .. "/" .. hunger.maxHunger)
    end
-   self.display:print(1, 3, "Depth: " .. Game.depth)
+   self.display:print(1, bottomAnchor - 1, "Depth: " .. Game.depth)
 
    -- Actually render the terminal out and present it to the screen.
    -- You could use love2d to translate and say center a smaller terminal or

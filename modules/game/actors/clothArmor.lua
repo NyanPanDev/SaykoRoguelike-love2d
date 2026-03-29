@@ -6,7 +6,7 @@ prism.registerActor("ClothArmor", function()
          color = prism.Color4.BLUE,
       },
       prism.components.Item(),
-      prism.components.Defence(2),
+      prism.components.Defence(5),
       prism.components.Equipment(
          "armor",
          prism.condition.Condition(prism.modifiers.DefenceModifier(5))
