@@ -42,7 +42,6 @@
          local armor = prism.actors.ClothArmor()
          local armorEquip = armor:get(prism.components.Equipment)
          if armorEquip then
-            -- Make sure the slot name "armor" matches your Equipper list above
             equipper.equipped["armor"] = armor
             if conditions and armorEquip.condition then
                equipper.statusMap[armor] = conditions:add(armorEquip.condition)

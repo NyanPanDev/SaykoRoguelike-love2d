@@ -20,7 +20,7 @@ function GameOverState:draw()
    )
    self.display:print(
       1, midpoint + 4,
-      "[q] to quit",
+      "[Escape] to quit",
       nil, nil, nil,
       "center", self.display.width
    )

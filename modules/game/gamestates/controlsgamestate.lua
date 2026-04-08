@@ -17,9 +17,9 @@ function ControlsGameState:draw()
       "Move: WASD",
       "Wait: Z",
       "Inventory: Tab",
+      "Equipment: O",
       "Stats: .",
-      "Restart: R",
-      "Quit: Escape"
+      "Pause: Escape"
    }
 
    for i, control in ipairs(controlList) do
