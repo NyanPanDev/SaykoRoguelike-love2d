@@ -13,6 +13,7 @@
          prism.components.Mover { "walk" },
          prism.components.Health(10),
          prism.components.Defence(1),
+         prism.components.AttackStatus(3),
          prism.components.Hunger(100),
          prism.components.Log(),
          prism.components.ConditionHolder(),

@@ -6,9 +6,10 @@ prism.registerActor("WoodenKatana", function()
          color = prism.Color4.BLUE,
       },
       prism.components.Item(),
+      prism.components.AttackStatus(5),
       prism.components.Equipment(
          "weapon",
-         prism.condition.Condition(prism.modifiers.HealthModifier(5))
+         prism.condition.Condition(prism.modifiers.AttackModifier(5))
       ),
       prism.components.Position(),
    }

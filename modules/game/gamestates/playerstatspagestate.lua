@@ -35,6 +35,23 @@ local function get_total_defence(player)
     return base_defence + bonus
 end
 
+
+local function get_total_attack(player)
+    local player_att = player:get(prism.components.AttackStatus)
+    local base_attack = player_att.attack
+    local bonus = 0
+    
+    local equipper = player:get(prism.components.Equipper)
+    if equipper then
+        for i, slot in pairs(equipper.slots) do
+            if equipper.equipped[slot.name] and equipper.equipped[slot.name]:has(prism.components.AttackStatus) then
+                bonus = bonus + equipper.equipped[slot.name]:get(prism.components.AttackStatus).attack
+            end
+        end
+    end
+    return base_attack + bonus
+end
+
 function PlayerStatsPageState:draw()
     local player = self.level:query(prism.components.PlayerController):first()
     self.previousState:draw()
@@ -49,12 +66,14 @@ function PlayerStatsPageState:draw()
         local health = player:get(prism.components.Health)
         local defence = player:get(prism.components.Defence)
         local total_def = get_total_defence(player)
+        local total_att = get_total_attack(player)
         local hunger = player:get(prism.components.Hunger)
         local curHP = health.hp
         local maxHP = health:getMaxHP()
         self.display:print(1, 3, ("Health: %d/%d"):format(curHP, maxHP))
-        self.display:print(1, 4, ("Defence: %d"):format(total_def))
-        self.display:print(1, 5, ("Hunger: %d"):format(hunger.hunger))
+        self.display:print(1, 4, ("Attack: %d"):format(total_att))
+        self.display:print(1, 5, ("Defence: %d"):format(total_def))
+        self.display:print(1, 6, ("Hunger: %d"):format(hunger.hunger))
     end
 
     self.display:draw()
