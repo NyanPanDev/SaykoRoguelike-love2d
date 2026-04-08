@@ -14,7 +14,7 @@ function GameStartState:draw()
    local midpoint = math.floor(self.display.height / 2)
 
    self.display:clear()
-   self.display:print(1, midpoint, "Splicer", nil, nil, nil, "center", self.display.width)
+   self.display:print(1, midpoint, "Sayko Roguelike", nil, nil, nil, "center", self.display.width)
 
    self.display:print(1, midpoint + 3, "[n] for new game", nil, nil, nil, "center", self.display.width)
 
