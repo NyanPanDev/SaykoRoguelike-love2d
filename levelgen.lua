@@ -102,11 +102,38 @@ end
 
    builder:addActor(prism.actors.Stairs(), randCorner.x, randCorner.y)
 
-   local chestRoom = availableRooms[rng:random(1, #availableRooms)]
-   local center = chestRoom:center():floor()
-   local drops = prism.components.DropTable(require "modules/game/loot/chest"):getDrops(rng)
 
-   builder:addActor(prism.actors.Chest(drops), center:decompose())
+   local possibleRooms = {}
+   for _, r in pairs(availableRooms) do
+      table.insert(possibleRooms, r)
+   end
+
+   local chestCount = 2
+   for i = 1, chestCount do
+      if #possibleRooms == 0 then break end
+      local index = rng:random(1, #possibleRooms)
+      local chestRoom = table.remove(possibleRooms, index)
+      local center = chestRoom:center():floor()
+      local drops = prism.components.DropTable(require "modules/game/loot/chest"):getDrops(rng)
+
+      builder:addActor(prism.actors.Chest(drops), center:decompose())
+   end
+
+
+   for _, room in pairs(rooms) do
+      local goldCount = rng:random(1, 3)
+
+      for i = 1, goldCount do
+         local rx = room.position.x
+         local ry = room.position.y
+         local rw = room.width
+         local rh = room.height
+
+         local gx = rng:random(rx + 1, rx + rw - 1)
+         local gy = rng:random(ry + 1, ry + rh - 1)
+         builder:addActor(prism.actors.Gold(), gx, gy)
+      end
+   end
 
    return builder
 end
