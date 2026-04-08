@@ -1,4 +1,4 @@
-# Sayko-Roguelike
+# SaykoRoguelike-love2d
 A traditional roguelike written in Lua with Love2d. Implements Prism (https://github.com/PrismRL/prism)
 
 ## Setup
