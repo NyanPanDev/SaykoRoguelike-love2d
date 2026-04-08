@@ -11,12 +11,12 @@ return spectrum.Input.Controls {
       move_upright   = { "e", "u" },
       move_left      = { "a", "h", "axis:leftx-" },
       move_right     = { "d", "l", "axis:leftx+" },
-      move_downleft  = { "z", "b" },
+      move_downleft  = "b",
       move_down      = { "s", "j", "axis:lefty-" },
       move_downright = { "c", "n" },
       wait           = "x",
       restart        = "r",
-      quit           = { "escape", "q" },
+      quit           = { "escape" },
       inventory      = "tab",
       back           = "backspace",
       pickup         = "p",
@@ -26,6 +26,8 @@ return spectrum.Input.Controls {
       newgame        = "n",
       loadgame       = "l",
       stats          = ".",
+      wait           = "z",
+      controls       = "i",
    },
    -- Pairs are controls that map to either 4 or 8 directions.
    -- With only 4 directions, the order is up, left, right, down.

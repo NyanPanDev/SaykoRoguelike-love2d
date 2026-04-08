@@ -24,7 +24,9 @@ function GameStartState:draw()
       self.display:print(1, midpoint + 3 + i, "[l] to load game", nil, nil, nil, "center", self.display.width)
    end
 
-   self.display:print(1, midpoint + 4 + i, "[q] to quit", nil, nil, nil, "center", self.display.width)
+   self.display:print(1, midpoint + 4 + i, "[i] for controls", nil, nil, nil, "center", self.display.width)
+
+   self.display:print(1, midpoint + 5 + i, "[Escape] to quit", nil, nil, nil, "center", self.display.width)
    self.display:draw()
 end
 
@@ -42,6 +44,10 @@ function GameStartState:update(dt)
       local save = prism.Object.deserialize(prism.messagepack.unpack(mp))
       Game = save
       self.manager:enter(spectrum.gamestates.GameLevelState(self.display, Game.level))
+   elseif controls.controls.pressed then
+      self.display:clear()
+      self.manager:push(spectrum.gamestates.ControlsGameState(self.display))
+      return
    elseif controls.quit.pressed then
       love.quit()
    end

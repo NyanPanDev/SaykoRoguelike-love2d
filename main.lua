@@ -36,7 +36,7 @@ function love.load(args)
 end
 
 function love.draw()
-   local zoom = 2.0 -- Change this to 1.5, 3.0, etc. to adjust zoom
+   local zoom = 2.0
    love.graphics.push()
    love.graphics.scale(zoom, zoom)
    manager:emit("draw")

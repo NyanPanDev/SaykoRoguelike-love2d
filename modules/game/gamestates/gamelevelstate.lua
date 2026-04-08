@@ -84,6 +84,12 @@ function GameLevelState:updateDecision(dt, owner, decision)
       
    end
 
+   if controls.quit.pressed then
+      local pauseState = spectrum.gamestates.PauseGameState(self.display)
+       self.manager:push(pauseState)
+      return
+   end
+
    if controls.stats.pressed then
       local statsState =
          spectrum.gamestates.PlayerStatsPageState(self.display, decision, self.level)
@@ -153,10 +159,6 @@ function GameLevelState:draw()
       self.display:putSenses(primary, secondary, self.level)
       self.display:endCamera()
    end
-
-   -- custom terminal drawing goes here!
-
-   -- Say hello!
 
    local zoom = 2.0 
    local visibleRows = (love.graphics.getHeight() / zoom) / 16

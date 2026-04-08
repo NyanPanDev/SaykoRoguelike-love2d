@@ -39,7 +39,7 @@ function PlayerStatsPageState:draw()
     local player = self.level:query(prism.components.PlayerController):first()
     self.previousState:draw()
     self.display:clear()
-    local zoom = 2.0 -- This MUST match the zoom in your main.lua
+    local zoom = 2.0
     local visibleCols = (love.graphics.getWidth() / zoom) / 16
     local edge = math.floor(visibleCols) - 1
     
